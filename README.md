@@ -6,7 +6,7 @@ Capabilities:
     - Creates plots, but only lineplots are supported with sufficient tests
 
 Requirements to run on your local machine:
-1. Python version >= 3.10
+1. Python version - 3.11
 2. Hugging Face acount and token generated
 3. Access to a Postgresql database
 
