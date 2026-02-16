@@ -13,8 +13,7 @@ Requirements to run on your local machine:
 Project structure:
 
 /datasets
-  / dataframe to work on
-  
+    / dataframe to work on
 /scripts
     / agent_info 
     
