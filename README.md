@@ -13,11 +13,9 @@ Requirements to run on your local machine:
 Project structure:
 
 /datasets
-
   / dataframe to work on
   
 /scripts
-
     / agent_info 
     
     / agent_tools              # tools created for the agent to use
