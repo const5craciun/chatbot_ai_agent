@@ -473,10 +473,12 @@ def plot_trend(
     safe_metrics = "_".join(metric_list)
     
     filename = f"{safe_metrics}_{time_dimension}_{safe_where}.png"
-
+    csv_path = f"scripts/plots_output/{safe_metrics}_{time_dimension}_{safe_where}.csv"
     
     if df.empty:
         return "No data found."
+    else:
+        df.to_csv(csv_path, index=False)
 
     for m in metric_list:
         plt.plot(df[time_dimension], df[m], label=m)
