@@ -15,10 +15,17 @@ from scripts.utils.tool_logger import log_tool_usage, clear_tool_log, get_tool_l
 login(os.getenv('hf_token')) # this is hugging face token, make sure you generate one in the HF website
 
 def chatbot_interaction(predefined_questions=None):
-    
+
+
+    model = InferenceClientModel(
+        model_id="meta-llama/Llama-3.3-70B-Instruct",
+        temperature=0.0,          # to keep it deterministic
+        top_p=0.9,
+        max_tokens=2048)          # maybe i change it later
+
     agent = CodeAgent(
         tools=[aggregate_metric_simple_where, aggregate_with_grouping, plot_trend],
-        model=InferenceClientModel(model_id="meta-llama/Llama-3.3-70B-Instruct"), 
+        model=model,
         additional_authorized_imports=["matplotlib.pyplot", "pandas"],
         planning_interval=3,
         verbosity_level=LogLevel.ERROR, # comment this out if you want to see the CoT, reasoning or steps taken
