@@ -493,3 +493,304 @@ def plot_trend(
     plt.close()  
 
     return "Plot generated successfully."
+
+
+# ---------- Scatter plot tool -------
+
+
+@tool
+def plot_scatter_relationship(
+    x_metric: str,
+    y_metric: str,
+    category_dimension: str = "",
+    year: int = None
+) -> str:
+    """
+    PURPOSE:
+        Generate a scatter plot to analyze the relationship between two numeric
+        marketing metrics using the preloaded pandas DataFrame `marketing_df`.
+    
+    WHEN TO USE:
+        - The user wants to understand the relationship between two KPIs.
+        - The user asks about correlation (e.g., "Is cost related to revenue?").
+        - The user wants to compare performance efficiency (e.g., ROI vs margin).
+        - The user wants to visually compare campaign or media performance
+          across two numeric variables.
+        - The user mentions "scatter plot", "relationship", "correlation",
+          "compare X vs Y", or similar phrasing.
+    
+    DO NOT USE:
+        - For time-based trends (use a line/trend tool instead).
+        - For ranking or top-N comparisons.
+        - For single aggregated numeric answers.
+        - For categorical bar comparisons without numeric relationships.
+    
+    DATA SOURCE:
+        Uses the preloaded pandas DataFrame: `marketing_df`
+        (No SQL queries are generated.)
+    
+    DATAFRAME SCHEMA:
+        year (int)
+        quarter (str)
+        month (str)
+        week (int)
+        date (datetime)
+        country (str)
+        media_category (str)
+        media_name (str)
+        communication (str)
+        campaign_category (str)
+        product (str)
+        campaign_name (str)
+        revenue (float)
+        cost (float)
+        profit (float)
+        roi (float)
+        margin (float)
+        quarter_number (int)
+        month_number (int)
+        month_name (str)
+    
+    ALLOWED METRICS:
+        revenue, cost, profit, roi, margin
+    
+    ALLOWED CATEGORY DIMENSIONS:
+        campaign_name
+        campaign_category
+        media_category
+        product
+        country
+    
+    BEHAVIOR:
+        - Filters data optionally by year.
+        - Plots x_metric on the x-axis.
+        - Plots y_metric on the y-axis.
+        - If category_dimension is provided, different categories are
+          plotted with separate markers and a legend.
+        - Returns "No data found." if the filtered dataset is empty.
+        - Displays the scatter plot.
+    
+    Args:
+        x_metric (str):
+            Numeric column to plot on x-axis.
+    
+        y_metric (str):
+            Numeric column to plot on y-axis.
+    
+        category_dimension (str, optional):
+            Categorical column used to segment points visually.
+    
+        year (int, optional):
+            Filters dataset to a specific year.
+    
+    RETURNS:
+        Confirmation string after generating the scatter plot,
+        or "No data found." if the filtered dataset is empty.
+    """
+
+    allowed_metrics = {"revenue", "cost", "profit", "roi", "margin"}
+    allowed_categories = {
+        "campaign_name",
+        "campaign_category",
+        "media_category",
+        "product",
+        "country"
+    }
+
+    if x_metric not in allowed_metrics:
+        return f"Invalid x_metric: {x_metric}"
+
+    if y_metric not in allowed_metrics:
+        return f"Invalid y_metric: {y_metric}"
+
+    if category_dimension and category_dimension not in allowed_categories:
+        return f"Invalid category dimension: {category_dimension}"
+
+    df = marketing_df.copy()
+
+    if year is not None:
+        df = df[df["year"] == year]
+
+    if df.empty:
+        return "No data found."
+
+    plt.figure()
+
+    if category_dimension:
+        for cat in df[category_dimension].dropna().unique():
+            subset = df[df[category_dimension] == cat]
+            plt.scatter(subset[x_metric], subset[y_metric], label=cat)
+        plt.legend()
+    else:
+        plt.scatter(df[x_metric], df[y_metric])
+
+    plt.xlabel(x_metric)
+    plt.ylabel(y_metric)
+    plt.title(f"{y_metric} vs {x_metric}")
+    plt.tight_layout()
+    plt.show()
+    plt.close()
+
+    return "Scatter plot generated successfully."
+
+# ------ 
+
+@tool
+def aggregate_metric_structured(
+    metric: str,
+    agg: str,
+    filters: dict | None = None
+) -> str:
+    """
+    PURPOSE:
+        Compute a single aggregated numeric value from the table `marketing_data`
+        using structured dictionary-based filters (NO raw SQL allowed).
+
+    WHEN TO USE:
+        - The user asks for a total, sum, average, minimum, maximum, or count.
+        - The question requires exactly ONE numeric result.
+        - The query refers to specific filters (year, product, country, campaign, etc.).
+        - The user does NOT request grouping, ranking, comparisons, or trends.
+
+    DO NOT USE:
+        - For grouped results (e.g., "by media_category", "by campaign_name").
+        - For top-N or ranking queries.
+        - For time-series trends (e.g., "revenue over time").
+        - For comparisons across multiple categories.
+        - When more than one aggregated result is required.
+
+    TABLE:
+        marketing_data
+
+    DATAFRAME SCHEMA:
+        year (BIGINT)
+        quarter (TEXT)
+        month (TEXT)
+        week (BIGINT)
+        date (TIMESTAMP)
+        country (TEXT)
+        media_category (TEXT)
+        media_name (TEXT)
+        communication (TEXT)
+        campaign_category (TEXT)
+        product (TEXT)
+        campaign_name (TEXT)
+        revenue (DOUBLE PRECISION)
+        cost (DOUBLE PRECISION)
+        profit (DOUBLE PRECISION)
+        roi (DOUBLE PRECISION)
+        margin (DOUBLE PRECISION)
+        quarter_number (BIGINT)
+        month_number (BIGINT)
+        month_name (TEXT)
+
+    VALID METRICS:
+        revenue, cost, profit, roi, margin
+
+    VALID AGGREGATIONS:
+        sum, avg, min, max, count
+
+    VALID FILTER COLUMNS:
+        year
+        quarter_number
+        month_number
+        month_name
+        product
+        country
+        media_category
+        campaign_name
+        campaign_category
+
+    FILTER FORMAT:
+        Filters must be passed as a dictionary with column-value equality pairs.
+
+        Example:
+            {"year": 2023}
+            {"year": 2023, "media_category": "online"}
+            {"month_name": "August", "country": "DK"}
+
+        Rules:
+            - Keys must match allowed filter columns exactly.
+            - Values must be properly typed:
+                * Integers for numeric columns (e.g., year, month_number)
+                * Strings for text columns (e.g., product, country)
+            - Only equality filtering is supported.
+            - No SQL syntax is allowed inside filters.
+            - Do NOT pass raw SQL strings.
+
+    BEHAVIOR:
+        - Builds a parameterized SQL query safely.
+        - Applies equality filters only.
+        - Executes query against marketing_data.
+        - Returns exactly ONE scalar numeric result as a string.
+        - Returns "No results found." if no matching rows exist.
+
+    Args:
+        metric (str):
+            Name of numeric column to aggregate.
+
+        agg (str):
+            Aggregation function to apply.
+
+        filters (dict, optional):
+            Dictionary of equality filters.
+
+    RETURNS:
+        String representation of a single numeric value.
+        Or "No results found." if no data matches.
+    """
+    
+    allowed_metrics = {"revenue", "cost", "profit", "roi", "margin"}
+    allowed_aggs = {"sum", "avg", "min", "max", "count"}
+
+    allowed_filter_columns = {
+        "year",
+        "quarter_number",
+        "month_number",
+        "month_name",
+        "product",
+        "country",
+        "media_category",
+        "campaign_name",
+        "campaign_category"
+    }
+
+    if metric not in allowed_metrics:
+        return f"Invalid metric. Allowed: {allowed_metrics}"
+
+    if agg not in allowed_aggs:
+        return f"Invalid aggregation. Allowed: {allowed_aggs}"
+
+    query = f"SELECT {agg}({metric}) FROM marketing_data"
+    params = {}
+
+    if filters:
+        conditions = []
+        for col, value in filters.items():
+
+            if col not in allowed_filter_columns:
+                return f"Invalid filter column: {col}"
+
+            param_name = f"param_{col}"
+            conditions.append(f"{col} = :{param_name}")
+            params[param_name] = value
+
+        where_sql = " WHERE " + " AND ".join(conditions)
+        query += where_sql
+
+    log_tool_usage(
+        tool_name="aggregate_metric_structured",
+        metadata={
+            "metric": metric,
+            "agg": agg,
+            "filters": filters
+        }
+    )
+    print(query, params)
+    with engine.connect() as con:
+        result = con.execute(text(query), params).fetchone()
+
+    if result is None or result[0] is None:
+        return "No results found."
+
+    return str(result[0])

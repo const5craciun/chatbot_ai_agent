@@ -8,7 +8,7 @@ from huggingface_hub import login
 from sqlalchemy import text
 from datetime import datetime
 from smolagents import CodeAgent, InferenceClientModel, LogLevel, tool
-from scripts.agent_tools.tools import aggregate_metric_simple_where, aggregate_with_grouping, plot_trend
+from scripts.agent_tools.tools import aggregate_metric_simple_where, aggregate_with_grouping, plot_trend, aggregate_metric_structured
 from scripts.utils.tool_logger import log_tool_usage, clear_tool_log, get_tool_log
 
 
@@ -24,7 +24,8 @@ def chatbot_interaction(predefined_questions=None):
         max_tokens=2048)          # maybe i change it later
 
     agent = CodeAgent(
-        tools=[aggregate_metric_simple_where, aggregate_with_grouping, plot_trend],
+        tools=[aggregate_metric_structured, aggregate_with_grouping, plot_trend],
+        #executor_type="e2b", needs E2B api key
         model=model,
         additional_authorized_imports=["matplotlib.pyplot", "pandas"],
         planning_interval=3,
