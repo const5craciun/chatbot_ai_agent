@@ -29,7 +29,7 @@ def chatbot_interaction(predefined_questions=None):
         model=model,
         additional_authorized_imports=["matplotlib.pyplot", "pandas"],
         planning_interval=3,
-        verbosity_level=LogLevel.ERROR, # comment this out if you want to see the CoT, reasoning or steps taken
+        #verbosity_level=LogLevel.ERROR, # comment this out if you want to see the CoT, reasoning or steps taken
     )
 
     agent.prompt_templates["system_prompt"] += """

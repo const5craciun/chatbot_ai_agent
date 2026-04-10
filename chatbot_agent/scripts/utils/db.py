@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 engine = create_engine(
-    f"postgresql+psycopg2://"
+    f"postgresql+psycopg://"
     f"{os.getenv('DB_USER')}:"
     f"{os.getenv('DB_PASSWORD')}@"
     f"{os.getenv('DB_HOST')}:"
