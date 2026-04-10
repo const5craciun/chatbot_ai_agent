@@ -1,9 +1,12 @@
 # chatbot_ai_agent project
+# keywords: Agentic AI, LLMs, HuggingFace, AWS Bedrock, LangChain, LangGraph
+
 
 This project leverages the capabilities of an LLM, creates 3 tools and uses them to extract information from a dataframe. 
 Capabilities: 
     - Retrieves information from table using SQL queries
     - Creates plots, but only lineplots are supported with sufficient tests
+On bedrock_chat.ipynb I implement a similar method, but this time using langChain and LangGraph. 
 
 Requirements to run on your local machine:
 1. Python version - 3.11
@@ -27,6 +30,7 @@ Project structure:
 
 chatbot.ipynb                  # Here you interact with the chatbot
 tests_chatbot.ipynb            # Testing chatbot outputs
+bedrock_chat.ipynb             # LangChain and LangGraph implementation of the same idea
 
 
 In order to run the project on your machine, after completing the 3 requirements you must do the following:
